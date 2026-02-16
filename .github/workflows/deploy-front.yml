@@ -1,0 +1,40 @@
+name: Deploy Front to O2switch
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Deploy to O2switch via rsync
+        uses: burnett01/rsync-deployments@7.0.1
+        with:
+          switches: -avz --delete --chmod=D755,F644
+          path: dist/
+          remote_path: ${{ secrets.O2SWITCH_REMOTE_PATH }}
+          remote_host: ${{ secrets.O2SWITCH_HOST }}
+          remote_port: ${{ secrets.O2SWITCH_PORT }}
+          remote_user: ${{ secrets.O2SWITCH_USER }}
+          remote_key: ${{ secrets.O2SWITCH_SSH_KEY }}
