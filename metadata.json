@@ -1,0 +1,5 @@
+{
+  "name": "Cyplom",
+  "description": "A modern, gradient-styled analytics dashboard featuring authentication flow and AI-powered insights using the Gemini API.",
+  "requestFramePermissions": []
+}

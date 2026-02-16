@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cyplom Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.10.1/dist/style.css" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              indigo: {
+                900: '#141585', // Base color request
+                800: '#1e1f9a',
+                700: '#2a2bb5',
+                600: '#3b3ce0',
+              }
+            },
+            animation: {
+              'blob': 'blob 7s infinite',
+              'float': 'float 6s ease-in-out infinite',
+            },
+            keyframes: {
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+                '50%': { transform: 'translateY(-20px) rotate(5deg)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #141585; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #0f106a; 
+      }
+      .animation-delay-1000 { animation-delay: 1s; }
+      .animation-delay-2000 { animation-delay: 2s; }
+      .animation-delay-4000 { animation-delay: 4s; }
+
+      .apexcharts-tooltip {
+        background: #fff !important;
+        border-color: #e5e7eb !important;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+        color: #111827 !important; /* Force text color to black/dark gray */
+      }
+      .apexcharts-tooltip-title {
+        background: #f9fafb !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        font-family: 'Inter', sans-serif !important;
+        color: #111827 !important; /* Force title color */
+      }
+      .apexcharts-text {
+        font-family: 'Inter', sans-serif !important;
+        fill: #6b7280 !important;
+      }
+      .apexcharts-tooltip-text-y-value, .apexcharts-tooltip-text-goals-value, .apexcharts-tooltip-z-value {
+        color: #111827 !important;
+      }
+      .apexcharts-tooltip-text-y-label, .apexcharts-tooltip-text-goals-label, .apexcharts-tooltip-z-label {
+        color: #6b7280 !important;
+      }
+      /* React Flow Styles */
+      .react-flow__node {
+        border-radius: 12px;
+        font-family: 'Inter', sans-serif;
+      }
+      .react-flow__handle {
+        width: 8px;
+        height: 8px;
+        background: #141585;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "@supabase/supabase-js": "https://aistudiocdn.com/@supabase/supabase-js@^2.45.0",
+    "apexcharts": "https://aistudiocdn.com/apexcharts@^3.49.0",
+    "react-apexcharts": "https://aistudiocdn.com/react-apexcharts@^1.4.1",
+    "xlsx": "https://esm.sh/xlsx@0.18.5",
+    "docx": "https://esm.sh/docx@8.5.0",
+    "reactflow": "https://esm.sh/reactflow@11.10.1?external=react,react-dom",
+    "path": "https://esm.sh/path@^0.12.7",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
