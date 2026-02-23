@@ -14,6 +14,7 @@ export const Signup: React.FC = () => {
   const [companyName, setCompanyName] = useState('');
   const [vatNumber, setVatNumber] = useState('');
   const [location, setLocation] = useState('');
+  const [country, setCountry] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,7 @@ export const Signup: React.FC = () => {
       const trimmedCompanyName = companyName.trim();
       const normalizedVatNumber = vatNumber.trim().toUpperCase();
       const trimmedLocation = location.trim();
+      const trimmedCountry = country.trim();
       const fullName = [trimmedFirstName, trimmedLastName].filter(Boolean).join(' ').trim();
 
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -46,7 +48,8 @@ export const Signup: React.FC = () => {
             company_name: trimmedCompanyName || null,
             user_vat_number: normalizedVatNumber || null,
             address: trimmedLocation || null,
-            location: trimmedLocation || null
+            location: trimmedLocation || null,
+            country: trimmedCountry || null
           },
         },
       });
@@ -65,7 +68,8 @@ export const Signup: React.FC = () => {
             name: trimmedLastName || null,
             company_name: trimmedCompanyName || null,
             user_vat_number: normalizedVatNumber || null,
-            address: trimmedLocation || null
+            address: trimmedLocation || null,
+            country: trimmedCountry || null
           },
           { onConflict: 'id' }
         );
@@ -245,14 +249,24 @@ export const Signup: React.FC = () => {
                 <h3 className="text-sm font-semibold text-[#141585]">Location</h3>
                 <p className="text-xs text-gray-500 mt-1">Physical office or billing address</p>
               </div>
-              <Input
-                label={t.settings.location}
-                type="text"
-                placeholder="Physical office or billing address"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="bg-gray-50 border-gray-200 focus:bg-white"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label={t.settings.location}
+                  type="text"
+                  placeholder="Physical office or billing address"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="bg-gray-50 border-gray-200 focus:bg-white"
+                />
+                <Input
+                  label={t.settings.country}
+                  type="text"
+                  placeholder="e.g. FR or France"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="bg-gray-50 border-gray-200 focus:bg-white"
+                />
+              </div>
             </div>
 
             <Button type="submit" fullWidth disabled={loading} className="h-12 text-base shadow-lg shadow-indigo-900/10 mt-2">
