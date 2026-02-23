@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    environment: O2switch
 
     steps:
       - name: Checkout repository
@@ -28,13 +29,11 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Deploy to O2switch via rsync
-        uses: burnett01/rsync-deployments@7.0.1
+      - name: Deploy to O2switch via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          switches: -avz --delete --chmod=D755,F644
-          path: dist/
-          remote_path: ${{ secrets.O2SWITCH_REMOTE_PATH }}
-          remote_host: ${{ secrets.O2SWITCH_HOST }}
-          remote_port: ${{ secrets.O2SWITCH_PORT }}
-          remote_user: ${{ secrets.O2SWITCH_USER }}
-          remote_key: ${{ secrets.O2SWITCH_SSH_KEY }}
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: dist/
+          server-dir: ./
