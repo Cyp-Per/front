@@ -138,7 +138,7 @@ export const Signup: React.FC = () => {
           </div>
 
           <div className="mt-12 pt-12 border-t border-white/10 flex justify-between text-indigo-100/80 text-sm">
-            <p>© 2025 Cyplom</p>
+            <p>© 2026 Cyplom</p>
             <div className="space-x-6">
               <a href="#" className="hover:text-white transition-colors">{t.footer.privacy}</a>
               <a href="#" className="hover:text-white transition-colors">{t.footer.terms}</a>
@@ -151,7 +151,6 @@ export const Signup: React.FC = () => {
         <div className="w-full max-w-md space-y-8">
           <div className="text-left">
             <h2 className="text-3xl font-bold tracking-tight text-[#141585]">{t.auth.createAccountTitle}</h2>
-            <p className="mt-2 text-gray-500">{t.auth.startTrial}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -162,58 +161,88 @@ export const Signup: React.FC = () => {
                 </div>
             )}
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/60 p-4 space-y-4">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Company Information</h3>
-                <p className="text-xs text-gray-500 mt-1">Corporate identity and legal numbers</p>
+                <h3 className="text-sm font-semibold text-[#141585]">Account</h3>
+                <p className="text-xs text-gray-500 mt-1">Login credentials</p>
               </div>
               <Input
-                label={t.settings.companyName}
-                type="text"
-                placeholder="e.g. Acme Corp"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                className="bg-white border-gray-200"
+                label={t.auth.emailLabel}
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-gray-50 border-gray-200 focus:bg-white"
               />
-              <Input
-                label={t.settings.vatNumber}
-                type="text"
-                placeholder="e.g. FR123456789"
-                value={vatNumber}
-                onChange={(e) => setVatNumber(e.target.value)}
-                className="bg-white border-gray-200 font-mono"
-              />
+              <div className="space-y-1">
+                <Input
+                  label={t.auth.passwordLabel}
+                  type="password"
+                  placeholder={t.auth.passwordHint}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-gray-50 border-gray-200 focus:bg-white"
+                />
+                <p className="text-xs text-gray-400">{t.auth.passwordHint}</p>
+              </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/60 p-4 space-y-4">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Personal Details</h3>
+                <h3 className="text-sm font-semibold text-[#141585]">Personal Details</h3>
                 <p className="text-xs text-gray-500 mt-1">Primary account contact info</p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
                   label={t.settings.firstName}
                   type="text"
-                  placeholder="Carrefour"
+                  placeholder="e.g. Sarah"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
-                  className="bg-white border-gray-200"
+                  className="bg-gray-50 border-gray-200 focus:bg-white"
                 />
                 <Input
                   label={t.settings.lastName}
                   type="text"
-                  placeholder="Demo"
+                  placeholder="e.g. Johnson"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="bg-white border-gray-200"
+                  className="bg-gray-50 border-gray-200 focus:bg-white"
                 />
               </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-gray-50/60 p-4 space-y-4">
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Location</h3>
+                <h3 className="text-sm font-semibold text-[#141585]">Company Information</h3>
+                <p className="text-xs text-gray-500 mt-1">Corporate identity and legal numbers</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label={t.settings.companyName}
+                  type="text"
+                  placeholder="e.g. Acme Corp"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="bg-gray-50 border-gray-200 focus:bg-white"
+                />
+                <Input
+                  label={t.settings.vatNumber}
+                  type="text"
+                  placeholder="e.g. FR123456789"
+                  value={vatNumber}
+                  onChange={(e) => setVatNumber(e.target.value)}
+                  className="bg-gray-50 border-gray-200 font-mono focus:bg-white"
+                />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-[#141585]">Location</h3>
                 <p className="text-xs text-gray-500 mt-1">Physical office or billing address</p>
               </div>
               <Input
@@ -222,30 +251,8 @@ export const Signup: React.FC = () => {
                 placeholder="Physical office or billing address"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="bg-white border-gray-200"
-              />
-            </div>
-
-            <Input
-              label={t.auth.emailLabel}
-              type="email"
-              placeholder="name@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-gray-50 border-gray-200 focus:bg-white"
-            />
-            <div className="space-y-1">
-              <Input
-                label={t.auth.passwordLabel}
-                type="password"
-                placeholder={t.auth.passwordHint}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
                 className="bg-gray-50 border-gray-200 focus:bg-white"
               />
-              <p className="text-xs text-gray-400">{t.auth.passwordHint}</p>
             </div>
 
             <Button type="submit" fullWidth disabled={loading} className="h-12 text-base shadow-lg shadow-indigo-900/10 mt-2">
