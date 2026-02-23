@@ -3,8 +3,42 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
 import { Loader2, Save, User, Building2, MapPin, Globe, CreditCard, Link as LinkIcon, Calendar, CheckCircle, AlertCircle, X } from 'lucide-react';
+
+type SettingsProfile = {
+  id?: string | null;
+  created_at?: string | null;
+  name?: string | null;
+  first_name?: string | null;
+  address?: string | null;
+  country?: string | null;
+  user_vat_number?: string | null;
+  company_name?: string | null;
+  url_webhook?: string | null;
+};
+
+type MeResponse = {
+  profile?: SettingsProfile;
+  error?: string;
+  message?: string;
+};
+
+const CHECKER_DEV_BASE_URL = 'https://api.cyplom.com/functions/v1/checker-dev';
+
+const extractApiErrorMessage = (payload: unknown, fallback: string): string => {
+  if (!payload || typeof payload !== 'object') {
+    return fallback;
+  }
+
+  const record = payload as Record<string, unknown>;
+  if (typeof record.error === 'string' && record.error.trim()) {
+    return record.error;
+  }
+  if (typeof record.message === 'string' && record.message.trim()) {
+    return record.message;
+  }
+  return fallback;
+};
 
 export const Settings: React.FC = () => {
   const { t } = useLanguage();
@@ -37,46 +71,58 @@ export const Settings: React.FC = () => {
     }
   }, [toast]);
 
+  const getAuthHeaders = async (includeJson = false) => {
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
+
+    if (!session?.access_token) {
+      throw new Error('Missing active session. Please sign in again.');
+    }
+
+    const headers: Record<string, string> = {
+      accept: 'application/json',
+      Authorization: `Bearer ${session.access_token}`
+    };
+
+    if (includeJson) {
+      headers['Content-Type'] = 'application/json';
+    }
+
+    return headers;
+  };
+
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        setUserId(user.id);
-        const { data, error } = await supabase
-          .from('user_data')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${CHECKER_DEV_BASE_URL}/me`, {
+        method: 'GET',
+        headers
+      });
+      const payload = (await response.json().catch(() => null)) as MeResponse | null;
 
-        if (error && error.code !== 'PGRST116') {
-          console.error("Error fetching profile:", error);
-        }
-
-        if (data) {
-          setFormData({
-            id: data.id || user.id,
-            created_at: data.created_at || new Date().toISOString(),
-            name: data.name || '',
-            first_name: data.first_name || '',
-            address: data.address || '',
-            country: data.country || '',
-            user_vat_number: data.user_vat_number || '',
-            company_name: data.company_name || '',
-            url_webhook: data.url_webhook || ''
-          });
-        } else {
-            // Initialize with user metadata if table is empty
-            setFormData(prev => ({
-                ...prev,
-                id: user.id,
-                created_at: user.created_at,
-                name: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
-                first_name: user.user_metadata?.full_name?.split(' ')[0] || ''
-            }));
-        }
+      if (!response.ok) {
+        throw new Error(extractApiErrorMessage(payload, 'Failed to load profile.'));
       }
+
+      const profile = payload?.profile;
+      if (!profile?.id) {
+        throw new Error('Profile response is missing user ID.');
+      }
+
+      setUserId(profile.id);
+      setFormData({
+        id: profile.id,
+        created_at: profile.created_at || new Date().toISOString(),
+        name: profile.name || '',
+        first_name: profile.first_name || '',
+        address: profile.address || '',
+        country: profile.country || '',
+        user_vat_number: profile.user_vat_number || '',
+        company_name: profile.company_name || '',
+        url_webhook: profile.url_webhook || ''
+      });
     } catch (err) {
       console.error("Unexpected error:", err);
     } finally {
@@ -94,24 +140,64 @@ export const Settings: React.FC = () => {
     setSaving(true);
     setToast(null);
     try {
-      // Strictly use update as requested. 
-      // Note: This requires the row to already exist in 'user_data'.
+      const firstName = formData.first_name.trim();
+      const lastName = formData.name.trim();
+      const address = formData.address.trim();
+      const vatNumber = formData.user_vat_number.trim().toUpperCase();
       const updates = {
-        name: formData.name,
-        first_name: formData.first_name,
-        address: formData.address,
-        country: formData.country,
-        user_vat_number: formData.user_vat_number,
-        company_name: formData.company_name,
-        url_webhook: formData.url_webhook,
+        first_name: firstName,
+        name: lastName,
+        address,
+        country: formData.country.trim().toUpperCase(),
+        user_vat_number: vatNumber,
+        company_name: formData.company_name.trim(),
+        url_webhook: formData.url_webhook.trim()
       };
+      const payload = Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value.length > 0)
+      );
 
-      const { error } = await supabase
-        .from('user_data')
-        .update(updates)
-        .eq('id', userId);
+      if (Object.keys(payload).length === 0) {
+        throw new Error('Provide at least one non-empty field to update.');
+      }
 
-      if (error) throw error;
+      const headers = await getAuthHeaders(true);
+      const response = await fetch(`${CHECKER_DEV_BASE_URL}/me`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(payload)
+      });
+      const responsePayload = (await response.json().catch(() => null)) as MeResponse | null;
+
+      if (!response.ok) {
+        throw new Error(extractApiErrorMessage(responsePayload, t.settings.saveError));
+      }
+
+      const profile = responsePayload?.profile;
+      if (profile?.id) {
+        setFormData({
+          id: profile.id,
+          created_at: profile.created_at || formData.created_at || new Date().toISOString(),
+          name: profile.name || '',
+          first_name: profile.first_name || '',
+          address: profile.address || '',
+          country: profile.country || '',
+          user_vat_number: profile.user_vat_number || '',
+          company_name: profile.company_name || '',
+          url_webhook: profile.url_webhook || ''
+        });
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          first_name: firstName,
+          name: lastName,
+          address,
+          user_vat_number: vatNumber,
+          country: formData.country.trim().toUpperCase(),
+          company_name: formData.company_name.trim(),
+          url_webhook: formData.url_webhook.trim()
+        }));
+      }
       
       setToast({ 
         message: `${t.settings.saveSuccess} (${formData.company_name || formData.first_name})`, 
