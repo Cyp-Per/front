@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Logo } from '../components/Logo';
-import { ArrowRight, Star, Loader2, AlertCircle, Globe, FileText, Shield, Lock, Activity } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Loader2, AlertCircle, Globe, FileText, Shield, Lock, Activity } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 
@@ -98,26 +98,30 @@ export const Signup: React.FC = () => {
         </div>
 
         <div className="relative z-10 max-w-lg">
-          <div className="flex gap-1 mb-8">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-            ))}
+          <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Logo className="w-64 text-white" />
           </div>
           
-          <h1 className="text-4xl font-bold mb-6 leading-tight">
-            "{t.auth.quoteSignup}"
+          <h1 className="text-5xl font-bold mb-6 leading-tight">
+            {t.auth.sloganLoginPart1} <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-100">
+              {t.auth.sloganLoginPart2}
+            </span>
           </h1>
-          
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full border-2 border-white/20 shadow-xl bg-indigo-800 flex items-center justify-center font-bold">SJ</div>
-            <div>
-              <p className="font-semibold text-white">Sarah Johnson</p>
-              <p className="text-indigo-200 text-sm">{t.auth.jobTitle}</p>
-            </div>
+          <p className="text-lg text-indigo-100 mb-8 leading-relaxed">
+            {t.auth.subSloganLogin}
+          </p>
+          <div className="space-y-4">
+            {[t.auth.feature1, t.auth.feature2, t.auth.feature3].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3 text-indigo-100/90 font-medium">
+                <CheckCircle2 className="w-5 h-5 text-blue-300" />
+                <span>{item}</span>
+              </div>
+            ))}
           </div>
 
           <div className="mt-12 pt-12 border-t border-white/10 flex justify-between text-indigo-100/80 text-sm">
-            <p>© 2024 Cyplom</p>
+            <p>© 2025 Cyplom</p>
             <div className="space-x-6">
               <a href="#" className="hover:text-white transition-colors">{t.footer.privacy}</a>
               <a href="#" className="hover:text-white transition-colors">{t.footer.terms}</a>

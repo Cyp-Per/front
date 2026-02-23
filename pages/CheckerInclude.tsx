@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Button } from '../components/Button';
 import { Upload, FileText, CheckCircle, AlertCircle, Clipboard, X, Loader2, Trash2, CheckSquare, RefreshCw } from 'lucide-react';
-import { read, utils } from 'xlsx';
 import { supabase } from '../services/supabaseClient';
 
 interface ExtractedNumber {
@@ -64,6 +63,147 @@ const normalizeVatInput = (value: string): string =>
   value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
 const isVatLike = (value: string): boolean => /^[A-Z]{2}[A-Z0-9]{2,14}$/.test(value);
+
+const normalizeSpreadsheetCell = (value: unknown): string => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean' || value instanceof Date) {
+    return String(value).trim();
+  }
+
+  if (typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+
+    if (typeof record.text === 'string') {
+      return record.text.trim();
+    }
+
+    if (Array.isArray(record.richText)) {
+      const richTextValue = record.richText
+        .map((part) => {
+          if (!part || typeof part !== 'object') {
+            return '';
+          }
+          const richPart = part as Record<string, unknown>;
+          return typeof richPart.text === 'string' ? richPart.text : '';
+        })
+        .join('')
+        .trim();
+
+      if (richTextValue) {
+        return richTextValue;
+      }
+    }
+
+    if (record.result !== null && record.result !== undefined) {
+      return normalizeSpreadsheetCell(record.result);
+    }
+  }
+
+  return '';
+};
+
+const detectCsvDelimiter = (line: string): string => {
+  const candidates = [',', ';', '\t'] as const;
+  let bestCandidate: string = candidates[0];
+  let bestCount = -1;
+
+  for (const candidate of candidates) {
+    let count = 0;
+    for (const char of line) {
+      if (char === candidate) {
+        count += 1;
+      }
+    }
+
+    if (count > bestCount) {
+      bestCount = count;
+      bestCandidate = candidate;
+    }
+  }
+
+  return bestCandidate;
+};
+
+const splitCsvLine = (line: string, delimiter: string): string[] => {
+  const cells: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) {
+      cells.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  cells.push(current);
+  return cells;
+};
+
+const extractFirstColumnFromCsv = (content: string): string[] => {
+  const sanitizedContent = content.replace(/^\uFEFF/, '');
+  const rows = sanitizedContent
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim().length > 0);
+
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const delimiter = detectCsvDelimiter(rows[0]);
+
+  return rows
+    .map((row) => {
+      const firstCell = splitCsvLine(row, delimiter)[0] ?? '';
+      return firstCell.trim();
+    })
+    .filter((value) => value.length > 0);
+};
+
+const extractFirstColumnFromXlsx = async (content: ArrayBuffer): Promise<string[]> => {
+  const { Workbook } = await import('exceljs');
+  const workbook = new Workbook();
+  await workbook.xlsx.load(content);
+
+  const sheet = workbook.worksheets[0];
+  if (!sheet) {
+    return [];
+  }
+
+  const values: string[] = [];
+  sheet.eachRow((row) => {
+    const normalized = normalizeSpreadsheetCell(row.getCell(1).value);
+    if (normalized) {
+      values.push(normalized);
+    }
+  });
+
+  return values;
+};
 
 export const CheckerInclude: React.FC = () => {
   const { t } = useLanguage();
@@ -204,49 +344,39 @@ export const CheckerInclude: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    processFile(file);
+    void processFile(file);
     e.target.value = ''; // reset
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setIsProcessingFile(true);
-    const reader = new FileReader();
+    try {
+      const fileName = file.name.toLowerCase();
+      let firstColumnValues: string[] = [];
 
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result;
-        // Parse CSV or Excel
-        const wb = read(data, { type: 'binary' });
-        const sheetName = wb.SheetNames[0];
-        const ws = wb.Sheets[sheetName];
-        
-        // Convert to array of arrays
-        const jsonData = utils.sheet_to_json(ws, { header: 1 }) as any[][];
-        
-        // Extract first column from each row, skipping empty
-        const newNumbers: ExtractedNumber[] = jsonData
-          .map(row => (row[0] ? String(row[0]).trim() : ''))
-          .filter(val => val.length > 0)
-          .map(val => ({
-             id: `file_${Date.now()}_${Math.random()}`,
-             value: val,
-             source: 'file'
-          }));
-
-        setExtractedNumbers(prev => [...prev, ...newNumbers]);
-      } catch (err) {
-        console.error("Parse error", err);
-        alert("Failed to parse file.");
-      } finally {
-        setIsProcessingFile(false);
+      if (fileName.endsWith('.csv')) {
+        const csvContent = await file.text();
+        firstColumnValues = extractFirstColumnFromCsv(csvContent);
+      } else if (fileName.endsWith('.xlsx')) {
+        const workbookContent = await file.arrayBuffer();
+        firstColumnValues = await extractFirstColumnFromXlsx(workbookContent);
+      } else {
+        throw new Error('Unsupported file format. Please use .csv or .xlsx files.');
       }
-    };
 
-    if (file.name.endsWith('.csv')) {
-        // Read as text for CSV sometimes safer, but binary works with XLSX lib usually
-        reader.readAsBinaryString(file);
-    } else {
-        reader.readAsBinaryString(file);
+      const newNumbers: ExtractedNumber[] = firstColumnValues.map((value) => ({
+        id: `file_${Date.now()}_${Math.random()}`,
+        value,
+        source: 'file',
+      }));
+
+      setExtractedNumbers((prev) => [...prev, ...newNumbers]);
+    } catch (err) {
+      console.error('Parse error', err);
+      const message = err instanceof Error ? err.message : 'Failed to parse file.';
+      alert(message);
+    } finally {
+      setIsProcessingFile(false);
     }
   };
 
@@ -263,7 +393,9 @@ export const CheckerInclude: React.FC = () => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
+    if (file) {
+      void processFile(file);
+    }
   };
 
   const clearNumbers = () => {
@@ -473,7 +605,7 @@ export const CheckerInclude: React.FC = () => {
                     type="file" 
                     ref={fileInputRef} 
                     className="hidden" 
-                    accept=".csv, .xlsx, .xls"
+                    accept=".csv, .xlsx"
                     onChange={handleFileUpload}
                 />
                 <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isProcessingFile}>
