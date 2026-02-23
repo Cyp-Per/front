@@ -6,6 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import { Search, Filter, CheckCircle, XCircle, AlertTriangle, FileText, X, ChevronLeft, ChevronRight, Loader2, Hash, RefreshCcw, Trash2 } from 'lucide-react';
 import { Button } from '../components/Button';
 import { downloadVatCertificatePdf } from '../services/vatCertificateService';
+import { formatDateDDMMYYYY } from '../utils/date';
 
 type Periodicity = 'daily' | 'weekly' | 'monthly' | 'inactive';
 type MonitoringStatusFilter = '__all__' | 'pending' | 'inactive' | 'active' | 'deleted';
@@ -158,32 +159,6 @@ const isVatLike = (value: string): boolean => /^[A-Z]{2}[A-Z0-9]{2,14}$/.test(va
 const isIsoCountryCodeLike = (value: string): boolean => /^[A-Z]{2}$/.test(value);
 
 const isIsoDate = (value: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(value);
-
-const formatDateDDMMYYYY = (value: string | null | undefined): string => {
-  if (!value) {
-    return '-';
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '-';
-  }
-
-  if (isIsoDate(trimmed)) {
-    const [year, month, day] = trimmed.split('-');
-    return `${day}/${month}/${year}`;
-  }
-
-  const parsed = new Date(trimmed);
-  if (Number.isNaN(parsed.getTime())) {
-    return trimmed;
-  }
-
-  const day = String(parsed.getDate()).padStart(2, '0');
-  const month = String(parsed.getMonth() + 1).padStart(2, '0');
-  const year = String(parsed.getFullYear());
-  return `${day}/${month}/${year}`;
-};
 
 const getNextIsoDate = (isoDate: string): string => {
   const date = new Date(`${isoDate}T00:00:00.000Z`);
@@ -1389,7 +1364,7 @@ export const CheckerMonitoringRoom: React.FC = () => {
                                          </td>
                                          <td className="px-6 py-4 text-gray-700 truncate max-w-[200px]" title={entityName}>{entityName}</td>
                                          <td className="px-6 py-4 text-gray-500 text-xs">
-                                             {item.created_at ? new Date(item.created_at).toLocaleDateString() : '-'}
+                                             {formatDateDDMMYYYY(item.created_at)}
                                          </td>
                                          <td className="px-6 py-4 text-gray-500 text-xs">
                                              {formatDateDDMMYYYY(item.last_check_date)}

@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { Button } from '../components/Button';
 import { Loader2, Save, User, Building2, MapPin, Globe, CreditCard, Link as LinkIcon, Calendar, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { formatDateDDMMYYYY } from '../utils/date';
 
 type SettingsProfile = {
   id?: string | null;
@@ -393,7 +394,7 @@ export const Settings: React.FC = () => {
                             <Calendar size={10} /> {t.settings.createdAt}
                         </label>
                         <div className="px-4 py-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-500 shadow-inner">
-                            {formData.created_at ? new Date(formData.created_at).toLocaleDateString(undefined, { dateStyle: 'long' }) + ' at ' + new Date(formData.created_at).toLocaleTimeString(undefined, { timeStyle: 'short' }) : '-'}
+                            {formatDateDDMMYYYY(formData.created_at)}
                         </div>
                     </div>
                 </div>

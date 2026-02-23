@@ -4,6 +4,7 @@ import { ApexOptions } from 'apexcharts';
 import { AlertTriangle, Activity, Search, XCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
+import { formatDateDDMMYYYY } from '../utils/date';
 
 interface VatChecksUserSummaryRow {
   user_uuid: string;
@@ -70,27 +71,8 @@ const parseJsonArray = <T,>(value: unknown): T[] => {
 
 const normalizeVatToken = (value: string): string => value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
-const formatDateMMDDYYYY = (value: string | null | undefined): string => {
-  if (!value) return '-';
-
-  const parsed = new Date(value.replace(' ', 'T'));
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  const month = String(parsed.getMonth() + 1).padStart(2, '0');
-  const day = String(parsed.getDate()).padStart(2, '0');
-  const year = String(parsed.getFullYear());
-  return `${month}/${day}/${year}`;
-};
-
 const formatShortDay = (isoDate: string): string => {
-  const parsed = new Date(`${isoDate}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) {
-    return isoDate;
-  }
-
-  return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return formatDateDDMMYYYY(isoDate, isoDate);
 };
 
 export const CheckerDashboard: React.FC = () => {
@@ -433,7 +415,7 @@ export const CheckerDashboard: React.FC = () => {
                       <td className="px-6 py-4 text-center text-gray-900 font-medium">
                         {entityName}
                       </td>
-                      <td className="px-6 py-4 text-center text-gray-500">{formatDateMMDDYYYY(row.date)}</td>
+                      <td className="px-6 py-4 text-center text-gray-500">{formatDateDDMMYYYY(row.date)}</td>
 
                       <td className="px-6 py-4 text-center">
                         <div className="flex justify-center">{getStatusBadge(row.status)}</div>

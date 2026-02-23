@@ -15,6 +15,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { Button } from '../components/Button';
 import { downloadVatCertificatePdf } from '../services/vatCertificateService';
+import { formatDateDDMMYYYY } from '../utils/date';
 
 type Periodicity = 'daily' | 'weekly' | 'monthly' | 'inactive';
 
@@ -100,32 +101,6 @@ const normalizePeriodicity = (value: string | null | undefined): Periodicity => 
     return value;
   }
   return 'daily';
-};
-
-const formatDateDDMMYYYY = (value: string | null | undefined): string => {
-  if (!value) {
-    return '-';
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '-';
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    const [year, month, day] = trimmed.split('-');
-    return `${day}/${month}/${year}`;
-  }
-
-  const parsed = new Date(trimmed);
-  if (Number.isNaN(parsed.getTime())) {
-    return trimmed;
-  }
-
-  const day = String(parsed.getDate()).padStart(2, '0');
-  const month = String(parsed.getMonth() + 1).padStart(2, '0');
-  const year = String(parsed.getFullYear());
-  return `${day}/${month}/${year}`;
 };
 
 const toReferenceRecord = (value: unknown): Record<string, unknown> => {
@@ -681,7 +656,7 @@ export const CheckerChecks: React.FC = () => {
                   return (
                     <tr key={`${check.id}`} className="hover:bg-gray-50/50">
                       <td className="px-5 py-4 text-gray-700">
-                        {checkDate ? new Date(checkDate).toLocaleString() : '-'}
+                        {formatDateDDMMYYYY(checkDate)}
                       </td>
                       <td className="px-5 py-4 font-mono text-gray-700">{requestId}</td>
                       <td className="px-5 py-4 text-gray-800">{check.name || '-'}</td>

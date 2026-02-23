@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { Button } from '../components/Button';
 import { Loader2, Plus, Trash2, AlertCircle, Building2 } from 'lucide-react';
+import { formatDateDDMMYYYY } from '../utils/date';
 
 interface Subaccount {
   id: string;
@@ -263,7 +264,7 @@ export const Subaccounts: React.FC = () => {
                     <td className="px-6 py-4 text-gray-800 font-medium">{item.name || '-'}</td>
                     <td className="px-6 py-4 font-mono text-indigo-900">{item.subuser_vat_number}</td>
                     <td className="px-6 py-4 text-gray-500">
-                      {item.created_at ? new Date(item.created_at).toLocaleDateString() : '-'}
+                      {formatDateDDMMYYYY(item.created_at)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button

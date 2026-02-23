@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { Button } from '../components/Button';
 import { Loader2, Key, Trash2, Plus, AlertCircle, CheckCircle, Copy, X, Lock } from 'lucide-react';
+import { formatDateDDMMYYYY } from '../utils/date';
 
 interface ApiKey {
   token_id: string;
@@ -350,7 +351,7 @@ export const ApiKeys: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-gray-500">
-                          {dateStr ? new Date(dateStr).toLocaleDateString() : '-'}
+                          {formatDateDDMMYYYY(dateStr)}
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${
