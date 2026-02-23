@@ -10,6 +10,9 @@ export interface AppUser {
     first_name?: string | null;
     name?: string | null;
     company_name?: string | null;
+    user_vat_number?: string | null;
+    address?: string | null;
+    country?: string | null;
     [key: string]: unknown;
   };
 }

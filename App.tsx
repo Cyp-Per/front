@@ -126,17 +126,34 @@ const App: React.FC = () => {
       return null;
     }
 
-    const fullName = session.user.user_metadata?.full_name;
+    const metadata = session.user.user_metadata ?? {};
+    const fullName = metadata.full_name;
     const fullNameParts =
       typeof fullName === 'string' ? fullName.trim().split(/\s+/).filter(Boolean) : [];
+    const metadataFirstName =
+      typeof metadata.first_name === 'string' && metadata.first_name.trim().length > 0
+        ? metadata.first_name.trim()
+        : fullNameParts[0] ?? '';
+    const metadataLastName =
+      typeof metadata.name === 'string' && metadata.name.trim().length > 0
+        ? metadata.name.trim()
+        : fullNameParts.slice(1).join(' ');
+    const metadataCompanyName =
+      typeof metadata.company_name === 'string' ? metadata.company_name.trim() : '';
+    const metadataVatNumber =
+      typeof metadata.user_vat_number === 'string' ? metadata.user_vat_number.trim() : '';
+    const metadataAddress =
+      typeof metadata.address === 'string' ? metadata.address.trim() : '';
 
     return {
       id: session.user.id,
       email: session.user.email ?? null,
       user_data: userData ?? {
-        first_name: fullNameParts[0] ?? '',
-        name: fullNameParts.slice(1).join(' '),
-        company_name: 'Company'
+        first_name: metadataFirstName,
+        name: metadataLastName,
+        company_name: metadataCompanyName,
+        user_vat_number: metadataVatNumber,
+        address: metadataAddress
       }
     };
   }, [session, userData]);
